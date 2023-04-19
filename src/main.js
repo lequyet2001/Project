@@ -21,10 +21,12 @@ database.ref("/test").on("value", function(snapshot) {
     const timestamp = Temp.Time;
     const temperature = Temp.Temperature;
     const humidity = Temp.Humidity;
-    t.push([,humidity,temperature,timestamp])
-    console.table(t)
-    dataT.push([timestamp, temperature]);
-    dataH.push([timestamp,humidity])
+    const time = new Date(`2000-01-01T${timestamp}Z`);
+    time.setHours(time.getHours() );
+    t.push([,humidity,temperature,time.toTimeString().slice(0, 8)])
+
+    dataT.push([time.toTimeString().slice(0, 8), temperature]);
+    dataH.push([time.toTimeString().slice(0, 8),humidity])
     // dataH.push(humidity);
     // dataTime.push(new Date(timestamp));
 
@@ -68,7 +70,7 @@ database.ref("/test").on("value", function(snapshot) {
       legend: { position: "bottom" },
       hAxis: {
         title: "Thời gian",
-        format: "HH:mm:ss",
+        format: "DD/MM/YYYY HH:mm:ss",
         gridlines: { count: -1, units: { minutes: { format: ["HH:mm"] } } },
       },
       vAxis: {
@@ -89,6 +91,7 @@ database.ref("/test").on("value", function(snapshot) {
     );
     chartT.draw(dataTableT, optionsT);
     chartH.draw(dataTableH, optionsH);
-    // console.log(dataT)
+   
   }
+  console.table(t)
 });

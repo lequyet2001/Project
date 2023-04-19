@@ -7,6 +7,7 @@
 #include <ESP8266WiFi.h>
 #endif
 #include <Firebase_ESP_Client.h>
+#include <FirebaseJson.h>
 #include "DHT.h"
 #include <Adafruit_Sensor.h>
 
@@ -34,7 +35,7 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 // Define Firebase Data object
 FirebaseData fbdo;
-
+FirebaseJson json;
 FirebaseAuth auth;
 FirebaseConfig config;
 
@@ -96,40 +97,20 @@ void loop()
     // Lấy giá trị thời gian hiện tại
     timeClient.update();
     String formattedTime = timeClient.getFormattedTime();
-
-    if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0))
+    json.add("Humidity", Humidity);
+    json.add("Temperature", Temperature);
+    json.add("Time", formattedTime);
+    if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 10000 || sendDataPrevMillis == 0))
     {
         sendDataPrevMillis = millis();
-        // Write an Int number on the database path test/int
-        if (Firebase.RTDB.setFloat(&fbdo, "test/Humidity", Humidity))
+        if (Firebase.RTDB.setJSON(&fbdo, "test", &json))
         {
-            Serial.println("PASSED");
+            Serial.println("Upload success!");
         }
         else
         {
-            Serial.println("FAILED");
-            Serial.println("REASON: " + fbdo.errorReason());
-        }
-        count++;
-
-        // Write an Float number on the database path test/float
-        if (Firebase.RTDB.setFloat(&fbdo, "test/Temperature", Temperature))
-        {
-            Serial.println("Temperature: ");
-        }
-        else
-        {
-            Serial.println("FAILED");
-            Serial.println("REASON: " + fbdo.errorReason());
-        }
-        if (Firebase.RTDB.setString(&fbdo, "test/Time", formattedTime))
-        {
-            Serial.println("formattedTime: ");
-        }
-        else
-        {
-            Serial.println("FAILED");
-            Serial.println("REASON: " + fbdo.errorReason());
+            Serial.println("Upload failed.");
+            Serial.println(fbdo.errorReason());
         }
     }
 }
