@@ -10,7 +10,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
-
+const t=[,"%","°C","time"]
 const dataT = [["Thời gian", "Nhiệt độ"]];
 const dataH = [["Thời gian", "Độ ẩm"]];
 const dataTime = [];
@@ -21,7 +21,8 @@ database.ref("/test").on("value", function(snapshot) {
     const timestamp = Temp.Time;
     const temperature = Temp.Temperature;
     const humidity = Temp.Humidity;
-    
+    t.push([,humidity,temperature,timestamp])
+    console.table(t)
     dataT.push([timestamp, temperature]);
     dataH.push([timestamp,humidity])
     // dataH.push(humidity);
