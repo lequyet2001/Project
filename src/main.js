@@ -1,4 +1,3 @@
-
 const firebaseConfig = {
   apiKey: "AIzaSyBrbO30q3ttwcHCiNmnZ8nUFC_AGlQwfM4",
   authDomain: "esp-firebase-demo-e5255.firebaseapp.com",
@@ -10,36 +9,85 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-var database=firebase.database();
-const dataT=[];
-const dataH=[];
-const dataTime=[];
-// database.ref('/test').set(firebase.database.ServerValue.TIMESTAMP);
-database.ref("/test").on("value",function(snapshot){
+const database = firebase.database();
+
+const dataT = [["Thời gian", "Nhiệt độ"]];
+const dataH = [["Thời gian", "Độ ẩm"]];
+const dataTime = [];
+const maxDataPoints = 20;
+database.ref("/test").on("value", function(snapshot) {
   var Temp =snapshot.val()
-  console.log(Temp)
-  document.getElementById("nd").innerHTML= "Nhiệt độ: "+Temp.Temperature+" °C";
-  document.getElementById("da").innerHTML="Độ ẩm: " + Temp.Humidity+" %";
-  var t=Temp.Temperature;
-  var h=Temp.Humidity;
-  var time=Temp.Time;
-  dataT.push(t);
-  dataH.push(h);
-  dataTime.push(time);
-  new Chart("myChart", {
-    type: "line",
-    data: {
-      labels: dataTime,
-      datasets: [{ 
-        data: dataH,
-        borderColor: "red",
-        fill: false
-      }]
-    },
-    options: {
-      legend: {display: false}
-    }
-  });
-})
+
+    const timestamp = Temp.Time;
+    const temperature = Temp.Temperature;
+    const humidity = Temp.Humidity;
+    
+    dataT.push([timestamp, temperature]);
+    dataH.push([timestamp,humidity])
+    // dataH.push(humidity);
+    // dataTime.push(new Date(timestamp));
 
 
+  // Remove data points if more than maximum number
+  if (dataT.length > maxDataPoints &&dataH.length >maxDataPoints) {
+    dataT.splice(1, dataT.length - maxDataPoints);
+    dataH.splice(1, dataH.length - maxDataPoints);
+  }
+
+  // Load Google Charts library and draw chart
+  google.charts.load('current', { packages: ['corechart'] });
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+    // Convert data array to DataTable object
+    const dataTableT = google.visualization.arrayToDataTable(dataT);
+    const dataTableH = google.visualization.arrayToDataTable(dataH);
+    // Set chart options
+    const optionsT = {
+      title: "Biểu đồ nhiệt độ theo thời gian",
+      curveType: "function",
+      legend: { position: "bottom" },
+      hAxis: {
+        title: "Thời gian",
+        format: "HH:mm:ss",
+        gridlines: { count: -1, units: { minutes: { format: ["HH:mm"] } } },
+      },
+      vAxis: {
+        title: "Nhiệt độ (°C)",
+        viewWindow: {
+          // min: 0,
+          // max: 50,
+        },
+        format: "#,##0.00°C"
+      },
+    };
+    const optionsH={
+      title: "Biểu đồ độ ẩm theo thời gian",
+      curveType: "function",
+      legend: { position: "bottom" },
+      hAxis: {
+        title: "Thời gian",
+        format: "HH:mm:ss",
+        gridlines: { count: -1, units: { minutes: { format: ["HH:mm"] } } },
+      },
+      vAxis: {
+        title: "Độ ẩm (%)",
+        viewWindow: {
+          // min: 0,
+          // max: 50,
+        },
+        // format: "#,##0.00%"
+      },
+    };
+    // Instantiate and draw the chart
+    const chartT = new google.visualization.LineChart(
+      document.getElementById("myChartT")
+    );
+     const chartH = new google.visualization.LineChart(
+      document.getElementById("myChartH")
+    );
+    chartT.draw(dataTableT, optionsT);
+    chartH.draw(dataTableH, optionsH);
+    // console.log(dataT)
+  }
+});

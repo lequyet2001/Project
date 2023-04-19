@@ -97,7 +97,7 @@ void loop()
     timeClient.update();
     String formattedTime = timeClient.getFormattedTime();
 
-    if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1500 || sendDataPrevMillis == 0))
+    if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 5000 || sendDataPrevMillis == 0))
     {
         sendDataPrevMillis = millis();
         // Write an Int number on the database path test/int
